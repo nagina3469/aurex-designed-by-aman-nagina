@@ -1,6 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Magnetic from './ui/Magnetic';
+import { lenisInstance } from '../lib/lenis';
+
+/** `ScrollToTop` only resets scroll on a pathname change — clicking the
+ * wordmark while already on "/" navigates to the same path, so that
+ * effect never re-fires and the page doesn't move. This scrolls back to
+ * the hero directly, independent of whether the route actually changes. */
+function scrollToHero() {
+  if (lenisInstance) {
+    lenisInstance.scrollTo(0, { immediate: true });
+  } else {
+    window.scrollTo(0, 0);
+  }
+}
 
 type NavProps = {
   loaded?: boolean;
@@ -111,6 +124,7 @@ export default function Nav({ loaded = true }: NavProps) {
             grey backdrop only ever appears on hover, never as a permanent bar. */}
         <Link
           to="/"
+          onClick={scrollToHero}
           className={`absolute left-1/2 -translate-x-1/2 rounded-full px-3.5 py-2 font-display font-bold text-[18px] tracking-[0.1em] transition-colors duration-200 ${
             onLight ? 'text-ink hover:bg-ink/8' : 'text-[#F4EFE4] hover:bg-white/10'
           }`}

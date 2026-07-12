@@ -1,6 +1,18 @@
 import { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Magnetic from './ui/Magnetic';
+import { lenisInstance } from '../lib/lenis';
+
+/** Same reasoning as Nav.tsx's wordmark: `ScrollToTop` only fires on a
+ * pathname change, so clicking this while already on "/" wouldn't move
+ * the page otherwise. */
+function scrollToHero() {
+  if (lenisInstance) {
+    lenisInstance.scrollTo(0, { immediate: true });
+  } else {
+    window.scrollTo(0, 0);
+  }
+}
 
 /** Live local clock — isolated + memoized so the 1s interval never re-renders the footer tree. */
 const LocalTime = memo(function LocalTime() {
@@ -50,9 +62,13 @@ export default function Footer() {
         {/* top row — link columns + coordinates */}
         <div className="flex flex-col md:flex-row justify-between gap-12 mb-20 sm:mb-28">
           <div className="max-w-[260px]">
-            <div className="font-display font-bold text-[20px] tracking-[0.08em] mb-4">
+            <Link
+              to="/"
+              onClick={scrollToHero}
+              className="inline-block font-display font-bold text-[20px] tracking-[0.08em] mb-4 hover:opacity-80 transition-opacity duration-200"
+            >
               ULLR<span className="text-copper-bright">.</span>
-            </div>
+            </Link>
             <p className="text-[13px] leading-relaxed text-[#F4EFE4]/50">
               An electric adventure-tourer with nothing hidden. Concept portfolio project.
             </p>
