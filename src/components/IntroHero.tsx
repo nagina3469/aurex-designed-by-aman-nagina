@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom';
 import Magnetic from './ui/Magnetic';
 import Nav from './Nav';
 import { prefersReducedMotion } from '../lib/reducedMotion';
+import { lenisInstance } from '../lib/lenis';
+
+// Worst-case wait for Phase A to reveal on its own (video actually
+// loading/playing/reaching INTRO_END) before forcing it — covers slow
+// connections where the video never gets far enough for `onTimeUpdate`
+// to fire at all, so the page doesn't stay scroll-locked indefinitely.
+const REVEAL_TIMEOUT_MS = 4000;
 
 const CARD_PHOTOS = [
   { src: '/images/studio-headlight-detail.jpg', label: 'Headlamp' },
@@ -46,10 +53,36 @@ export default function IntroHero() {
     return () => clearInterval(id);
   }, []);
 
-  // Phase A — unattended intro playback, 0 → INTRO_END. Ignores scroll
-  // entirely; only once it finishes does the section start reading scroll
-  // at all, so an impatient early scroll can't put the video in a
-  // half-controlled state.
+  // Scroll is genuinely locked (not just ignored) until Phase A reveals —
+  // previously scroll was only *unread* during Phase A, but the page
+  // itself was never actually blocked from scrolling, so scrolling fast
+  // (or just impatiently) while the video was still loading could carry
+  // straight past the whole 300vh wrapper before it ever revealed,
+  // dropping the visitor into the section below with the hero never
+  // having played. Lenis owns real scroll here (see `SmoothScroll.tsx`),
+  // so its own stop()/start() is the correct lever, not fighting it with
+  // CSS overflow; the `documentElement` overflow lock underneath is a
+  // fallback for the reduced-motion path, where no Lenis instance exists
+  // at all (see `SmoothScroll.tsx`) — though that path reveals
+  // synchronously on mount anyway, so it's only ever locked for an
+  // instant there.
+  useEffect(() => {
+    if (revealed) {
+      lenisInstance?.start();
+      document.documentElement.style.overflow = '';
+      return;
+    }
+    lenisInstance?.stop();
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      lenisInstance?.start();
+      document.documentElement.style.overflow = '';
+    };
+  }, [revealed]);
+
+  // Phase A — unattended intro playback, 0 → INTRO_END, scroll-locked (see
+  // above) until it finishes, so an impatient early scroll can't skip
+  // past the hero or put the video in a half-controlled state.
   useEffect(() => {
     const video = videoRef.current;
     // Guard on the persistent ref, not a local flag — React StrictMode
@@ -109,8 +142,15 @@ export default function IntroHero() {
       playPromise.catch(() => reveal(true));
     }
 
+    // Slow connection fallback — if the video hasn't gotten far enough to
+    // fire `onTimeUpdate` past INTRO_END within REVEAL_TIMEOUT_MS, force
+    // the reveal instead of leaving the page scroll-locked (see the effect
+    // below) indefinitely while a 28MB file crawls in.
+    const timeoutId = window.setTimeout(() => reveal(true), REVEAL_TIMEOUT_MS);
+
     return () => {
       cancelled = true;
+      window.clearTimeout(timeoutId);
       video.removeEventListener('timeupdate', onTimeUpdate);
     };
   }, []);
