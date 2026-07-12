@@ -9,7 +9,13 @@ import { lenisInstance } from '../lib/lenis';
 // loading/playing/reaching INTRO_END) before forcing it — covers slow
 // connections where the video never gets far enough for `onTimeUpdate`
 // to fire at all, so the page doesn't stay scroll-locked indefinitely.
-const REVEAL_TIMEOUT_MS = 4000;
+// Must stay well above INTRO_END's 4 real seconds of required playback,
+// not equal to it — at 4000 this raced the natural pause on essentially
+// every normal load (any buffering/decode jitter pushes real completion
+// past 4000ms wall-clock), so it was winning and forcing an instant-seek
+// jump-cut instead of the smooth natural pause almost every time. This
+// is a genuine-stall fallback, not a race partner for normal playback.
+const REVEAL_TIMEOUT_MS = 10000;
 
 const CARD_PHOTOS = [
   { src: '/images/studio-headlight-detail.jpg', label: 'Headlamp' },
