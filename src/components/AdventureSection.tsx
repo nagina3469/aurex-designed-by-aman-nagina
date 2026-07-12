@@ -20,7 +20,12 @@ export default function AdventureSection() {
           muted
           loop
           playsInline
-          preload="auto"
+          // "auto" had this 12MB video competing for bandwidth with the hero
+          // video on initial page load despite sitting well below the fold —
+          // "metadata" only fetches enough to know duration/dimensions
+          // up front, and the browser fills in the rest once this section is
+          // actually near the viewport.
+          preload="metadata"
           poster="/images/mountain-1.jpg"
           className="absolute inset-0 w-full h-full object-cover"
           src="/video/mountain-ride.mp4"
@@ -80,6 +85,7 @@ export default function AdventureSection() {
               <img
                 src={item.src}
                 alt={item.caption}
+                loading="lazy"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
