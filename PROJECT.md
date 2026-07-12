@@ -2067,15 +2067,24 @@ render with correct contrast against the new background at 1280×800.
   `gh repo rename`, which also auto-updated the local `origin` remote.
   New repo URL: `https://github.com/nagina3469/ullr-designed-by-aman-nagina`.
   GitHub's own redirect keeps the old URL working, so nothing already
-  shared breaks. The Vercel project name/domain (still
-  `aurex-designed-by-aman-nagina.vercel.app`) could NOT be renamed the
-  same way - no rename endpoint is exposed through this session's
-  Vercel MCP tools, and Vercel does not auto-redirect a renamed
-  project's old subdomain the way GitHub does for repos, so this one
-  is a manual one-field edit in the Vercel dashboard (Project Settings
-  → General → Project Name) if the user wants the live URL to say
-  "ullr" too - flagged to the user rather than left silently
-  inconsistent.
+  shared there breaks.
+  - **Correction, caught on the very next verification pass**: initially
+    assumed (and documented here) that the connected Vercel project's
+    domain would stay on the old `aurex-designed-by-aman-nagina.vercel.app`
+    since no rename endpoint is exposed through this session's Vercel
+    MCP tools. That assumption was wrong - Vercel's GitHub integration
+    derives the default subdomain from the connected repo's name and
+    **did** follow the rename automatically on the very next deploy.
+    Caught this only because the routine post-deploy live-site check
+    (navigating to the URL that had worked for every previous deploy)
+    came back a flat 404 instead of the expected page - if that check
+    had been skipped "since nothing code-side changed," this would have
+    shipped silently broken. Unlike GitHub, Vercel does **not**
+    redirect the old subdomain at all - it just stops resolving.
+    **Current, correct live URL**: `https://ullr-designed-by-aman-nagina.vercel.app`.
+    The old `aurex-designed-by-aman-nagina.vercel.app` is dead with no
+    redirect - anywhere that URL was already shared needs to be updated
+    to the new one.
 - **Added a "master prompt" section (this revision)**, at the user's
   request, condensing this whole project's tech stack, design system,
   page structure, and hard-won interaction-pattern lessons (scroll-scrub
