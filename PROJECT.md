@@ -1,4 +1,11 @@
-# VAULT — Project Notes
+# ULLR — Project Notes
+
+> Renamed from AUREX (2026-07-12) — see changelog entry near the end of
+> this file for why, and for the GitHub/Vercel rename that went with it.
+> This file's own title and early sections still say "VAULT"/"AUREX" in
+> places since they're a running log, not a spec sheet — treat the
+> **most recent** changelog entries as the source of truth for current
+> naming, not the top of the file.
 
 Portfolio case study: electric adventure-tourer motorcycle landing page.
 Source brief: `~/Downloads/VAULT_handoff_brief.md`. This file tracks decisions
@@ -43,6 +50,144 @@ meaningful change to the project.
 --color-copper-deep:   #8F4517   (small text on light bg, better contrast)
 --color-line:          #E8E2D8   (lightened to match; was too dark/tan
                                   relative to the near-white bg otherwise)
+```
+
+## Master prompt — regenerate this style of site from scratch
+
+Added 2026-07-12 at the user's request, so this project can be used as a
+one-shot template for a similar site in a fresh session. Copy everything
+in the fenced block below into a new conversation with a coding agent.
+It captures the tech stack, design system, page structure, and the
+specific interaction-pattern lessons this project learned the hard way
+(scroll-scrub jitter, sticky-pin timing, reveal-animation pitfalls) so a
+regeneration doesn't have to rediscover them.
+
+```
+Build a single-product portfolio case-study website for a fictional
+electric adventure-touring motorcycle. Tone: premium, minimal, "nothing
+hidden" honesty — no fake specs, no claims the product photography
+contradicts (e.g. don't say "chainless direct-drive" if the renders show
+a chain). Reference feel: Rivian, Cake, other modern EV DTC sites — one
+flowing narrative landing page, not a photo-dump gallery page.
+
+STACK
+- Vite + React 19 + TypeScript + Tailwind CSS v4 (@tailwindcss/vite,
+  @theme block for design tokens, not tailwind.config.js)
+- react-router-dom v6 for routing (landing page + a /specs page)
+- Lenis for smooth scroll (wraps native scroll, doesn't replace it —
+  keeps position:sticky and getBoundingClientRect-based scroll-linked
+  code working unchanged)
+- No animation library (no Framer Motion/GSAP) — all motion is CSS
+  transitions/transforms driven by React state, plus a couple of
+  IntersectionObserver-driven scroll reveals and rAF-driven scroll-scrub
+  effects for the two places that need frame-accurate scroll coupling.
+
+DESIGN SYSTEM
+- Fonts: one distinctive display/headline font (self-hosted local .otf
+  files via @font-face, not Google Fonts — reads less like a generic
+  AI-template default), a clean sans body font, and a monospace font for
+  data/labels/stats/eyebrow text. Expose all three as Tailwind theme
+  tokens (font-display, font-sans, font-mono).
+- Palette: near-white background (not pure #fff), dark ink text, one
+  warm accent color (this project used copper/burnt-orange — pick
+  something that fits the product) with a "bright" and "deep" variant
+  for glows vs. small-text-on-light-bg contrast, a muted gray-brown for
+  secondary text, a light line/border color.
+- A subtle site-wide film-grain overlay (fixed position, SVG
+  feTurbulence noise, ~5% opacity, animated drift) for texture.
+- Every interactive element gets a real hover/press state — no static
+  buttons. Small "magnetic" cursor-follow effect on primary CTAs is a
+  nice touch but skip it if using a heavy animation library is off the
+  table.
+
+PAGE STRUCTURE (landing page)
+1. Fixed transparent Nav — adaptive text color that samples the
+   background luminance under it on scroll (light text over dark hero
+   video, dark text once scrolled over a light section).
+2. Full-bleed scroll-scrubbed video hero: plays unattended for the
+   first few seconds (autoplay, muted), pauses, then hands control to
+   scroll — scroll position maps to the rest of the video's timeline.
+   Headline/CTA copy cascades in with staggered delays once the
+   unattended phase ends, then fades out as scroll-scrub begins.
+3. A kinetic marquee band (scrolling brand phrases) as a rhythm break.
+4. A sticky scroll-spy feature section: left column is a vertical list
+   of feature headlines: right column is a pinned media card whose
+   image/caption updates to match whichever list item is "active."
+5. A bento-grid product detail gallery (mixed tile sizes, hover zoom,
+   links through to the specs page).
+6. A full-bleed "lifestyle" video/image section for a different context
+   than the studio shots (e.g. the product in actual use).
+7. A closing CTA section with a reservation/waitlist framing.
+8. A footer with real founder/designer social links (not fake in-universe
+   brand social accounts), a giant faint wordmark, live local clock as a
+   small "always-on" detail.
+
+PAGE STRUCTURE (/specs page)
+1. Full-screen hero: a photo where the angle actually supports the
+   page's content — for a specs page specifically, a side-profile shot
+   works better than a 3/4 hero shot, since dimension callouts
+   (wheelbase, seat height, ground clearance) read naturally against a
+   silhouette.
+2. Full spec table grouped by category (powertrain, battery/charging,
+   chassis, brakes/wheels, dimensions).
+3. A small detail-photo gallery (3-4 tiles).
+4. An interactive ride-mode/trim selector (click to swap active state).
+5. A comparison table against the closest ICE-equivalent category.
+
+HARD-WON LESSONS (avoid rediscovering these)
+- Scroll-scrubbed video: encode with every frame as a keyframe
+  (ffmpeg -g 1 -keyint_min 1 -sc_threshold 0) or seeking during scroll
+  will stutter — the browser has to decode forward from the last
+  keyframe otherwise. This trades file size/quality for seek smoothness;
+  raise -crf/bitrate to compensate if the result looks soft, don't
+  downscale resolution as the first fix.
+- That same video's "unattended autoplay then hand off to scroll" phase
+  transition will visibly snap/jitter unless you anchor the scroll-scrub
+  math to the video's ACTUAL paused currentTime (read after autoplay
+  pauses), not a theoretical constant — autoplay never pauses at exactly
+  the constant you told it to stop at.
+- Sticky scroll-spy sections (pinned media card, scrolling text list):
+  don't pick the "active" item by finding whichever list item's center
+  is closest to the viewport center. Do the math on whether the sticky
+  element's actual pin range (container height minus one viewport) is
+  even long enough to let the LAST item's center ever cross viewport-
+  center while still pinned — with enough list items it usually isn't,
+  and the pinned card starts scrolling away before the last item/s ever
+  get shown. Use scroll-progress-through-the-pin-range instead (p =
+  clamp(-containerRect.top / (containerHeight - viewportHeight), 0, 1),
+  activeIndex = floor(p * itemCount)) — guarantees full, even coverage.
+- `overflow` (anything but visible) on ANY ancestor between a
+  position:sticky element and its containing block silently breaks the
+  sticky behavior. If you need overflow-hidden for a decorative element
+  near a sticky section, scope it to the smallest possible wrapper, not
+  a shared ancestor.
+- IntersectionObserver-driven reveal-on-scroll: track the "revealed"
+  class via React state, not by imperatively calling
+  el.classList.add() outside React's render cycle. If that same
+  element's className prop can ever change later for an unrelated
+  reason (e.g. a toggled active state), React will overwrite the whole
+  className attribute on that re-render and silently wipe the
+  imperatively-added class — everything snaps back to its pre-reveal
+  hidden state.
+- Don't eagerly load every image on the page regardless of scroll
+  position — add loading="lazy" to anything below the first viewport.
+  Don't set autoPlay on any below-the-fold video either: autoplay makes
+  browsers buffer enough to sustain playback immediately regardless of
+  any preload="none"/"metadata" hint or actual visibility. Gate both
+  loading and play()/pause() behind an IntersectionObserver instead.
+- Before naming the product/brand, check search-engine uniqueness, not
+  just "does this sound cool" — a mythology name can still collide hard
+  with an existing tech product, security company, or malware family
+  (this project's first two mythology picks both did).
+- Deploying a client-side-routed SPA (react-router) to a static host
+  needs an explicit rewrite-all-paths-to-index.html rule (a vercel.json
+  with a catch-all rewrite, for example) or any route besides / 404s on
+  direct load/refresh — the dev server's built-in history fallback
+  doesn't exist in production.
+
+Ask me for the specific product name, mythology/brand-name direction,
+color accent, and photography before generating copy or picking assets
+— don't invent those unprompted.
 ```
 
 ## Page structure (rebuilt to match a screen recording of the Radian EXR
@@ -1899,3 +2044,43 @@ render with correct contrast against the new background at 1280×800.
     `https://amannagina.com/` (previously plain text).
   - Verified via direct DOM inspection (not just visual) that all four
     links resolve to the exact provided URLs with `target="_blank"` set.
+- **AdventureSection's video was still downloading eagerly after the
+  earlier preload fix (this revision)**: user reported the live site
+  taking 4-6s to feel fully loaded. Measured via
+  `performance.getEntriesByType('resource')` on the actual deployed
+  site rather than guessing - confirmed `mountain-ride.mp4` (9.2MB) was
+  still downloading in full on initial load despite the earlier
+  `preload="metadata"` fix, because the video also had `autoPlay` set
+  unconditionally - autoplay makes browsers buffer enough to sustain
+  playback immediately, which overrides the preload hint regardless of
+  scroll position. Fixed by removing `autoPlay` and gating actual
+  `.play()`/`.pause()` behind an `IntersectionObserver` (same pattern
+  as `Reveal.tsx`), `preload` dropped to `"none"`. Re-measured after
+  deploy: 0 requests for that file on initial load (was 9.2MB).
+  Also measured the hero video (`aman-hero.mp4`, ~28MB) during the same
+  investigation - it turned out NOT to be a front-loaded bottleneck
+  despite its size: only ~28KB transferred in the first 3s window,
+  since a `<video>` element streams progressively via range requests
+  rather than downloading the whole file upfront. Left it untouched.
+- **GitHub repo renamed to match the ULLR rebrand (this revision)**:
+  `aurex-designed-by-aman-nagina` → `ullr-designed-by-aman-nagina` via
+  `gh repo rename`, which also auto-updated the local `origin` remote.
+  New repo URL: `https://github.com/nagina3469/ullr-designed-by-aman-nagina`.
+  GitHub's own redirect keeps the old URL working, so nothing already
+  shared breaks. The Vercel project name/domain (still
+  `aurex-designed-by-aman-nagina.vercel.app`) could NOT be renamed the
+  same way - no rename endpoint is exposed through this session's
+  Vercel MCP tools, and Vercel does not auto-redirect a renamed
+  project's old subdomain the way GitHub does for repos, so this one
+  is a manual one-field edit in the Vercel dashboard (Project Settings
+  → General → Project Name) if the user wants the live URL to say
+  "ullr" too - flagged to the user rather than left silently
+  inconsistent.
+- **Added a "master prompt" section (this revision)**, at the user's
+  request, condensing this whole project's tech stack, design system,
+  page structure, and hard-won interaction-pattern lessons (scroll-scrub
+  jitter fix, sticky-pin timing bug, the Reveal.tsx className-clobber
+  bug, eager-media-loading fixes, brand-name SEO-collision check) into
+  a single copy-pasteable prompt for regenerating a similar site from
+  scratch in a fresh session - see the "Master prompt" section near the
+  top of this file, right after the design tokens.
