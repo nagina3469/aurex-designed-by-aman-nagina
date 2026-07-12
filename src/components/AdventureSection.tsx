@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Reveal from './ui/Reveal';
 import Magnetic from './ui/Magnetic';
@@ -11,21 +12,42 @@ const GALLERY = [
 ];
 
 export default function AdventureSection() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // `autoPlay` alone made the browser buffer this 9MB video immediately on
+  // page load regardless of the `preload` hint or scroll position — once a
+  // video is told to autoplay, browsers start fetching enough to sustain
+  // playback right away, overriding "metadata"/"none". Gating actual
+  // play() behind an IntersectionObserver (same pattern as `Reveal.tsx`)
+  // means nothing downloads until this section is actually about to be
+  // seen, and pausing on exit stops it burning bandwidth once scrolled
+  // past.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) video.play().catch(() => {});
+          else video.pause();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(video);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section className="relative bg-ink">
       {/* Full-bleed statement video */}
       <div className="relative h-[85vh] min-h-[560px] overflow-hidden">
         <video
-          autoPlay
+          ref={videoRef}
           muted
           loop
           playsInline
-          // "auto" had this 12MB video competing for bandwidth with the hero
-          // video on initial page load despite sitting well below the fold —
-          // "metadata" only fetches enough to know duration/dimensions
-          // up front, and the browser fills in the rest once this section is
-          // actually near the viewport.
-          preload="metadata"
+          preload="none"
           poster="/images/mountain-1.jpg"
           className="absolute inset-0 w-full h-full object-cover"
           src="/video/mountain-ride.mp4"
