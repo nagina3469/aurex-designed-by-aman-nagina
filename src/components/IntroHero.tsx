@@ -66,22 +66,31 @@ export default function IntroHero() {
   // straight past the whole 300vh wrapper before it ever revealed,
   // dropping the visitor into the section below with the hero never
   // having played. Lenis owns real scroll here (see `SmoothScroll.tsx`),
-  // so its own stop()/start() is the correct lever, not fighting it with
-  // CSS overflow; the `documentElement` overflow lock underneath is a
-  // fallback for the reduced-motion path, where no Lenis instance exists
-  // at all (see `SmoothScroll.tsx`) — though that path reveals
-  // synchronously on mount anyway, so it's only ever locked for an
-  // instant there.
+  // so its own stop()/start() is the correct lever on its own — verified
+  // in Lenis's source that stop() calls preventDefault() on wheel/touch
+  // input directly, no CSS needed.
+  //
+  // The `documentElement` overflow toggle is scoped to ONLY the
+  // no-Lenis path (reduced-motion, see `SmoothScroll.tsx`) rather than
+  // running unconditionally — toggling `overflow` forces a layout
+  // recalculation for the entire page, and doing that in the same React
+  // commit as the video's pause() was landing squarely on the reveal
+  // frame, competing for the main thread at the exact moment the video
+  // was trying to stop cleanly. That's what caused the small jerk right
+  // as the intro stopped. Lenis's own stop()/start() doesn't touch
+  // layout at all, so the normal path no longer pays that cost.
   useEffect(() => {
+    if (lenisInstance) {
+      if (revealed) lenisInstance.start();
+      else lenisInstance.stop();
+      return () => lenisInstance?.start();
+    }
     if (revealed) {
-      lenisInstance?.start();
       document.documentElement.style.overflow = '';
       return;
     }
-    lenisInstance?.stop();
     document.documentElement.style.overflow = 'hidden';
     return () => {
-      lenisInstance?.start();
       document.documentElement.style.overflow = '';
     };
   }, [revealed]);
