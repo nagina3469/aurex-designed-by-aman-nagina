@@ -53,7 +53,7 @@ export default function AdventureSection() {
           </h2>
           <Reveal delay={0.25}>
             <p className="text-[15px] sm:text-[16px] leading-relaxed text-[#F4EFE4]/70 mb-8 max-w-md">
-              4,000 meters up, zero compromises. The AUREX One goes where the map stops — real range, real suspension
+              4,000 meters up, zero compromises. The ULLR One goes where the map stops — real range, real suspension
               travel, a chassis that doesn't flinch at altitude.
             </p>
           </Reveal>

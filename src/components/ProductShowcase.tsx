@@ -16,7 +16,7 @@ type ShowcaseItem = {
 const ITEMS: ShowcaseItem[] = [
   {
     src: '/images/studio-three-quarter.jpg',
-    alt: 'AUREX One — three-quarter studio view on paddock stand',
+    alt: 'ULLR One — three-quarter studio view on paddock stand',
     meta: 'STUDIO — 3/4 FRONT',
     caption: 'Nothing to hide',
     span: 'md:col-span-4 md:row-span-2',
@@ -24,7 +24,7 @@ const ITEMS: ShowcaseItem[] = [
   },
   {
     src: '/images/gallery-cockpit.jpg',
-    alt: 'AUREX One — cockpit view from the saddle',
+    alt: 'ULLR One — cockpit view from the saddle',
     meta: 'COCKPIT',
     caption: 'Everything you need',
     span: 'md:col-span-2',
@@ -33,7 +33,7 @@ const ITEMS: ShowcaseItem[] = [
   },
   {
     src: '/images/gallery-fork-detail.jpg',
-    alt: 'AUREX One — front fork and fender detail',
+    alt: 'ULLR One — front fork and fender detail',
     meta: 'DETAIL — FRONT FORK',
     caption: 'Machined, not molded',
     span: 'md:col-span-2',
@@ -42,7 +42,7 @@ const ITEMS: ShowcaseItem[] = [
   },
   {
     src: '/images/studio-front.jpg',
-    alt: 'AUREX One — straight-on studio view',
+    alt: 'ULLR One — straight-on studio view',
     meta: 'STUDIO — FRONT',
     caption: 'Symmetry by design',
     span: 'md:col-span-2',
@@ -50,7 +50,7 @@ const ITEMS: ShowcaseItem[] = [
   },
   {
     src: '/images/gallery-tank-macro.jpg',
-    alt: 'AUREX One — copper tank edge macro detail',
+    alt: 'ULLR One — copper tank edge macro detail',
     meta: 'MACRO — TANK EDGE',
     caption: 'Copper, hand-finished',
     span: 'md:col-span-2',
@@ -58,7 +58,7 @@ const ITEMS: ShowcaseItem[] = [
   },
   {
     src: '/images/gallery-controls-macro.jpg',
-    alt: 'AUREX One — handlebar controls macro detail',
+    alt: 'ULLR One — handlebar controls macro detail',
     meta: 'MACRO — CONTROLS',
     caption: 'Every switch, tactile',
     span: 'md:col-span-2',

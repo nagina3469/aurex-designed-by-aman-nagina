@@ -30,7 +30,7 @@ const FOOTER_LINKS = [
     ],
   },
   { heading: 'Company', links: [{ label: 'See the build', href: '/#the-build' }, { label: 'Journal', href: '#' }, { label: 'Support', href: '#' }] },
-  // Real links out to the designer's own profiles, not in-universe AUREX
+  // Real links out to the designer's own profiles, not in-universe ULLR
   // accounts — this is a portfolio case study, not an actual brand, so
   // "Social" here means "where to find the person who built this."
   {
@@ -51,7 +51,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between gap-12 mb-20 sm:mb-28">
           <div className="max-w-[260px]">
             <div className="font-display font-bold text-[20px] tracking-[0.08em] mb-4">
-              AUREX<span className="text-copper-bright">.</span>
+              ULLR<span className="text-copper-bright">.</span>
             </div>
             <p className="text-[13px] leading-relaxed text-[#F4EFE4]/50">
               An electric adventure-tourer with nothing hidden. Concept portfolio project.
@@ -117,13 +117,13 @@ export default function Footer() {
         {/* giant wordmark */}
         <div aria-hidden className="select-none pointer-events-none -mb-1 sm:-mb-2">
           <div className="font-display font-bold tracking-tight leading-[0.8] text-[clamp(60px,12vw,190px)] text-[#F4EFE4]/[0.12] whitespace-nowrap">
-            AUREX
+            ULLR
           </div>
         </div>
 
         {/* legal row */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F4EFE4]/15 pt-6 font-mono text-[11px] tracking-[0.06em] text-[#F4EFE4]/45">
-          <span>© 2026 AUREX MOTO — CONCEPT PORTFOLIO PROJECT</span>
+          <span>© 2026 ULLR MOTO — CONCEPT PORTFOLIO PROJECT</span>
           <span className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-copper-bright animate-pulse" />
             LOCAL TIME — <LocalTime />

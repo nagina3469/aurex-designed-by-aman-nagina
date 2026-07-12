@@ -1,4 +1,4 @@
-const PHRASES = ['Built to go further', 'The Aurex One', 'Nothing hidden', '42 kW on tap'];
+const PHRASES = ['Built to go further', 'The Ullr One', 'Nothing hidden', '42 kW on tap'];
 
 /**
  * Kinetic type band between the hero and The Build — alternating filled and

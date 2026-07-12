@@ -114,7 +114,7 @@ export default function SpecsPage() {
       <section className="relative w-full min-h-[100dvh] overflow-hidden bg-ink">
         <img
           src="/images/gallery-side-profile.jpg"
-          alt="AUREX One — clean side profile, studio"
+          alt="ULLR One — clean side profile, studio"
           className="absolute inset-0 w-full h-full object-cover"
         />
 
@@ -333,7 +333,7 @@ export default function SpecsPage() {
         <div className="max-w-3xl">
           <div className="grid grid-cols-3 gap-4 pb-3 border-b border-line">
             <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted">Category</span>
-            <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-copper-deep">AUREX One</span>
+            <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-copper-deep">ULLR One</span>
             <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-muted">450cc ICE</span>
           </div>
           {COMPARISON.map(([label, vault, ice], i) => (

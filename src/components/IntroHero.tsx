@@ -244,7 +244,7 @@ export default function IntroHero() {
                   }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-copper-bright" />
-                  The Aurex One
+                  The Ullr One
                 </span>
               </span>
 

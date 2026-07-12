@@ -115,7 +115,7 @@ export default function Nav({ loaded = true }: NavProps) {
             onLight ? 'text-ink hover:bg-ink/8' : 'text-[#F4EFE4] hover:bg-white/10'
           }`}
         >
-          AUREX
+          ULLR
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2 ml-auto">
