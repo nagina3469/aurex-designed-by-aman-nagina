@@ -28,7 +28,16 @@ const CARD_INTERVAL_MS = 2600;
 // The intro auto-plays 0→INTRO_END unattended, then pauses and hands
 // control to scroll — from there, scroll progress (0-1 across the
 // wrapper's scroll range) maps to the remaining INTRO_END→duration span.
-const INTRO_END = 4;
+// Was 4 — the source footage holds a static headlight close-up until
+// ~3.5s, then starts pulling back into the full-bike turntable shot.
+// Pausing at 4 landed squarely mid-pull-back, so however the natural
+// pause drifted (a few ms past the target, same as always), it froze on
+// a different in-motion frame each time — reading as the frame randomly
+// jumping/sliding left. 3.3 sits with real margin before that motion
+// starts (confirmed by sampling frames through 3.5s), so Phase A always
+// stops on the same static frame, and the pull-back itself becomes part
+// of the scroll-scrub — driven by the user instead of autoplayed.
+const INTRO_END = 3.3;
 // Copy fades out over this much scroll progress once scrubbing starts —
 // a short range, not a hard cutoff, so it reads as a quick dissolve
 // rather than a jump cut the instant the wheel moves.
