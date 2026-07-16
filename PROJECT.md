@@ -2085,6 +2085,19 @@ render with correct contrast against the new background at 1280×800.
     The old `aurex-designed-by-aman-nagina.vercel.app` is dead with no
     redirect - anywhere that URL was already shared needs to be updated
     to the new one.
+  - **Second correction, several sessions later**: the Vercel project
+    was renamed again, independently, to `ullr-by-aman-nagina` (project
+    id `prj_dkRkRK9otk1G5jNYCjhTVCPSwhCI`) - **not** driven by a GitHub
+    repo rename this time (the GitHub repo is still
+    `ullr-designed-by-aman-nagina`, confirmed via `gh repo view`), so
+    Vercel project names don't reliably track the connected repo name
+    once something (dashboard action, re-import) decouples them.
+    **Current, correct live URL**: `https://ullr-by-aman-nagina.vercel.app`.
+    The `ullr-designed-by-aman-nagina.vercel.app` one from the entry
+    above is dead too now. Lesson holds even harder the second time:
+    always verify the live domain via `get_project`/`list_projects`
+    rather than assuming the last-known URL still resolves, especially
+    after any gap between sessions.
 - **Added a "master prompt" section (this revision)**, at the user's
   request, condensing this whole project's tech stack, design system,
   page structure, and hard-won interaction-pattern lessons (scroll-scrub
@@ -2093,3 +2106,75 @@ render with correct contrast against the new background at 1280×800.
   a single copy-pasteable prompt for regenerating a similar site from
   scratch in a fresh session - see the "Master prompt" section near the
   top of this file, right after the design tokens.
+- **Hero video jitter, four separate real causes found one at a time
+  across several rounds (this revision)** - user kept reporting "still
+  jerky" after each fix, and each time turned out to be a genuinely
+  different bug, not a re-occurrence of the same one:
+  1. `AdventureSection`'s second video (`mountain-ride.mp4`, 9.2MB, well
+     below the fold) still downloaded in full on every page load despite
+     an earlier `preload="metadata"` fix - `autoPlay` overrides preload
+     hints once a browser decides to sustain playback, regardless of
+     visibility. Fixed by removing `autoPlay` entirely and gating actual
+     `.play()`/`.pause()` behind an `IntersectionObserver`, same pattern
+     as `Reveal.tsx`.
+  2. The slow-connection reveal-timeout fallback (`REVEAL_TIMEOUT_MS`)
+     was set to 4000, identical to `INTRO_END`'s 4 real seconds of
+     required playback, with zero margin - normal buffering jitter made
+     the artificial timeout win the race almost every time, forcing an
+     instant-seek jump-cut instead of the natural smooth pause. Raised
+     to 10000ms so it only fires for genuinely stalled loads.
+  3. The scroll-lock effect (added to stop impatient scrolling from
+     skipping the whole hero before it revealed) toggled `overflow` on
+     `document.documentElement` unconditionally, including on the normal
+     Lenis-active path where it wasn't needed. Toggling `overflow`
+     forces a full-page layout recalc, and it was landing in the same
+     React commit as the video's `pause()` - competing for the main
+     thread at the exact reveal frame. Scoped the toggle to only the
+     no-Lenis `prefers-reduced-motion` fallback; Lenis's own
+     `stop()`/`start()` (verified via its source to call
+     `preventDefault()` on wheel/touch directly) doesn't touch layout at
+     all, so the normal path stopped paying that cost.
+  4. **The real "frame jerks left" cause, and the one that took the
+     longest to find**: not a bug at all - the source footage itself has
+     a camera pull-back starting around 3.5s (static headlight close-up
+     transitioning into the full-bike turntable shot), confirmed by
+     extracting frames every few hundred ms and comparing them directly
+     rather than guessing. `INTRO_END` at 4 was pausing autoplay
+     squarely mid-pull-back, so however many ms past the target the
+     natural pause drifted (documented, expected behavior), it froze on
+     a different in-motion frame each load - reading as a random
+     left/right jump. Further complicated by a second, wrong hypothesis
+     along the way (suspected the pull-back was still active at 4.5s
+     based on an inconsistent early frame comparison) that a rigorous
+     re-sweep with frame-to-frame pixel-difference measurements
+     disproved - the footage is genuinely static through ~3.9s, then a
+     smooth *continuous* zoom that runs straight into the turntable
+     rotation without ever settling again (measured motion stays
+     roughly constant from 4.3s through 6.0s). That last fact matters
+     for future tuning: **there is no pause point after ~3.9s in this
+     clip that is both "clean framing" and "zero motion"** - it's a
+     real tradeoff between the two, not a bug to keep chasing.
+     `INTRO_END` landed at 4.2 after the user compared actual extracted
+     frames at 3.3 / 4.5 / 4.2 and picked the framing they liked best,
+     with that tradeoff made explicit before deciding.
+  - **Method note worth repeating**: every one of these four was found
+    by direct measurement (`performance.getEntriesByType('resource')`,
+    frame extraction via `ffmpeg -ss ... -vframes 1`, frame-to-frame
+    pixel-diff via `ffmpeg blend=difference` piped through Python) after
+    the user's report, never by reasoning about the code alone. The
+    "jerks left" one in particular would have been impossible to find
+    by reading `IntroHero.tsx` - the component logic was correct the
+    whole time; the bug was in the video file's content.
+- **Video re-encoded for size, separately from all of the above (this
+  revision)**: `aman-hero.mp4` cut from 28MB to 15MB by re-encoding at
+  CRF22 instead of the earlier CRF18 quality pass, still all-keyframe
+  (needed for scroll-scrub). Compared frames from both encodes side by
+  side at normal viewing size before committing - visually
+  indistinguishable at this compression level. This was a genuine
+  initial-load-time fix (less data to buffer before the video can play
+  at all), independent of the jitter-root-cause hunt above.
+- **Brand rename note**: the sitewide `AUREX` -> `ULLR` rename (German
+  brand-name collision, chosen after checking search-uniqueness against
+  Talos/Vidar/Vayu/Eos) also touched `Marquee.tsx`'s phrase list, which
+  is easy to forget - it's not near any of the obvious brand-name
+  locations (`Nav.tsx`, `Footer.tsx`, `index.html`).
